@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	  <meta charset="UTF-8">
+    <title>administrative/infrastructure</title>
+
+    <meta charset="UTF-8">
+<script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
+    <!-- <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"> -->
+  <script src='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.js'></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css" rel="stylesheet">  
+  <link href='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.css' rel='stylesheet' />
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" type="text/css">
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" type="text/css">
+ 
+<!-- Promise polyfill script is required -->
+<!-- to use Mapbox GL Geocoder in IE 11. -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+
+<!--<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Raleway:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@700&family=Coda+Caption:wght@800&family=Hammersmith+One&display=swap" rel="stylesheet"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+<!--
+  <script type="text/javascript" src="js/mapbox-gl.js"></script>
+-->
+<!-- <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+        integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+        crossorigin="anonymous">
+</script> -->
+<!--<script src="js/jquery.mousefollow.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap" rel="stylesheet"> -->
+    <style>
+		body{
+			font-size:14px;
+			font-family: 'Helvetica', sans-serif;
+/*			font-family: 'Quicksand', sans-serif;
+*/		}
+	
+		#infoTitle{
+			font-weight:100;
+			font-size:36px;
+			letter-spacing:4px;
+			margin-bottom:20px;
+			background-color:rgba(255,255,255,0.9);
+/*			filter: drop-shadow(4px 4px 4px rgba(0,0,0,.2));
+			padding:10px;
+*/			
+		}
+		#map{
+			position:absolute;
+			left:0px;
+			top:0px;
+		/*		margin-left:300px;
+		padding:0px;*/
+			height:100%;
+			width:100%;
+			margin-left:320px;
+		}
+		#info{
+			z-index:9999;
+			position:absolute;top:0px;left:0px;
+			padding:10px;
+			height:100vh;
+			width:300px;
+			background-color:rgba(255,255,255,0);
+/*			filter: drop-shadow(4px 4px 4px rgba(0,0,0,.2));
+*/			margin:0px;
+			color::#fa6614;
+			border-right:4px solid black;
+		}
+			#instruction{
+				font-style:italic;
+			}
+		#key{z-index:999; 
+			background-color:rgba(255,255,255,0);
+			height:200px;
+			visibility:hidden;
+		}
+		#presentLocation{
+		/*	width:150px;*/
+/*			height:30px;
+			border:1px solid black;
+*/		/*	position:fixed;
+			left:320px;
+			top:10px;*/
+			padding:5px;
+			/*padding-top:20px;*/
+		}
+		.highlight{
+			color:#fa6614;
+			font-weight:600;
+			font-size:16px;
+		}
+		.listSubtitle{
+			font-size:14px;
+			font-weight:400;
+		}
+		.listText{
+			font-size:12px;
+		/*	font-style:italic;
+*/			font-weight:100;
+			line-height:110%;
+		}
+		#instruction{
+		}
+		#currentSelectionMap{
+			position:fixed;
+			left:320px;
+			top:30px;
+			width:200px;
+		}
+			
+			#currentSelection{
+				
+/*			background-color:rgba(255,255,255,.8);
+*//*			width:200px;
+*/			font-size:12px;
+				margin-bottom:10px;
+		/*	height:100px;*/
+/*			background-color:#000;
+*//*			color:white;
+*/			/*border-radius:20px;*/
+		}
+		#showAll{
+			width:40px;
+			color:#fff;
+			background-color:#000;
+			height:40px;
+			position:fixed;
+			left:280px;
+			bottom:10px;
+			padding:15px;
+			vertical-align:center;
+			font-weight:700;
+			text-align:center;
+			border-radius:50%;
+			line-height:20px;
+			cursor:pointer;
+		}
+		#popup{
+			position:absolute;
+			font-size:12px;
+			padding:5px;
+			border:1px solid #dedede;
+			color:white;
+			background-color:rgba(0,0,0,.8);
+			visibility:hidden;
+		}
+		.subIntersections{
+			text-decoration:underline;
+		}
+		#intro{
+			padding:10px;
+			font-size:11px;
+		}
+		#geocoder{
+			height:50px;
+			width:200px;
+		}
+		#presentLocation{
+			font-size:11px;
+		}
+		.mapboxgl-ctrl-geocoder--input{
+			border:1px solid black;
+		}
+		.mapboxgl-ctrl-geocoder--icon {
+		    fill: #000000;
+		}
+		.sectionTitle{
+			background-color:#aaa;
+			color:white;
+			padding:5px;
+			font-weight:100;
+			margin:2px;
+			color:black;
+		}
+		.sectionText{
+			display:none;
+			padding:5px;
+		}
+		/*#presentLocationTitle{
+			position:fixed;
+			left:350px;
+			top:0px;
+			margin:20px;
+
+			background-color:white;
+			border:1px solid black;
+			padding:5px;
+		}*/
+			#matchesForAll{
+				font-size:36px;
+			}
+    </style>
+
+</head>
+
+<body>
+
+<div id="map"></div>
+	<div id="currentSelectionMap"></div>
+
+
+<div id="info">
+	<div id="infoTitle">
+		matches
+	</div>
+	<!-- <div id="intro">
+
+	</div> -->
+	<div id="currentSelection">Find places like where you live using the Social Vulnerbility Index(and Census data).<br>Click anywhere on map or enter an address to start</div>
+	<div id="geocoder"></div>
+	<div id="presentLocationTitle"></div>
+	
+	<!-- <div id="instruction">Click anywhere on map or enter an address to see administrative boundaries.</div> -->
+	<!-- <div id="intro">From health, education, safety to political representation, every place in the city falls within a set administrative boundaries. These boundaries divide the city into units, but they also connect the city through their overlaps - indicating shared resources.
+	For example, how does your school district share its congresional representation? How does your neighborhood intersect with different police precincts in addition to your own?
+	</div> -->
+	<div id="presentLocation"></div>
+	<div id="matchesForAll"></div>
+	<!-- https://data.cityofnewyork.us/City-Government/Neighborhood-Tabulation-Areas-NTA-/cpf4-rkhq
+	https://www1.nyc.gov/site/planning/data-maps/open-data/districts-download-metadata.page
+	 --><!-- <div id="key">
+		Click on one of the layers below to see details
+	</div> -->
+</div>
+ <div id="popup">test</div>
+  
+<!-- <div id="showAll">HIDE<br>ALL</div> -->
+
+
+<script type="text/javascript" src="js/d3.js"></script>
+<script type="text/javascript" src="js/queue.v1.min.js"></script>
+<script type="text/javascript" src="intersections_address.js"></script>
+
+
+</body>
+</html>
