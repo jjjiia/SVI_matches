@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	  <meta charset="UTF-8">
+    <title>administrative/infrastructure</title>
+
+    <meta charset="UTF-8">
+<script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
+    <!-- <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"> -->
+  <script src='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.js'></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css" rel="stylesheet">  
+  <link href='https://api.mapbox.com/mapbox.js/v3.1.1/mapbox.css' rel='stylesheet' />
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" type="text/css">
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" type="text/css">
+ 
+<!-- Promise polyfill script is required -->
+<!-- to use Mapbox GL Geocoder in IE 11. -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+
+<!--<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&family=Raleway:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@700&family=Coda+Caption:wght@800&family=Hammersmith+One&display=swap" rel="stylesheet"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+<!--
+  <script type="text/javascript" src="js/mapbox-gl.js"></script>
+-->
+<!-- <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+        integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ"
+        crossorigin="anonymous">
+</script> -->
+<!--<script src="js/jquery.mousefollow.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;700&display=swap" rel="stylesheet"> -->
+    <style>
+		body{
+			font-size:14px;
+			font-family: 'Helvetica', sans-serif;
+/*			font-family: 'Quicksand', sans-serif;
+*/		}
+			.section{
+				width:200px;
+				display:inline-block;
+				
+				vertical-align:top;
+				padding:10px;
+				margin:0px;
+			}
+			.sectionTitle{
+				font-weight:700;
+				padding:5px;
+			}
+			#chart{
+				width:100%;
+				border:1px solid black;
+				position:absolute;
+				top:0px;
+				left:0px;
+				z-index:-1;
+			}
+    </style>
+
+</head>
+
+<body>
+	<div id="title">
+	Census Tracts<br>
+	Here is an overview to explain what they are.
+</div>
+
+<div id="menu">
+	<div id="land" class="section">
+	<div class="sectionTitle">lands</div>
+	<div class="sectionItem">large and small</div>
+	<div class="sectionItem" id="population">most people and least people</div>
+	<div class="sectionItem">dense and sparse</div>
+	</div>
+
+	<div id="people" class="section">
+	<div class="sectionTitle">people</div>
+	<div class="sectionItem">young and old</div>
+	<div class="sectionItem">male and female</div>
+	</div>
+
+	<div id="household" class="section">
+	<div class="sectionTitle">households</div>
+	<div class="sectionItem">households large and small</div>
+	<div class="sectionItem">married and single</div>
+	</div>
+
+	<div id="socioeconomics" class="section">
+	<div class="sectionTitle">socioeconomics</div>
+	<div class="sectionItem">educated and not</div>
+	<div class="sectionItem">rich and poor</div>
+	</div>
+</div>
+
+<div id="chart"></div>
+
+<script type="text/javascript" src="js/d3.js"></script>
+<script type="text/javascript" src="js/queue.v1.min.js"></script>
+<script type="text/javascript" src="censusKeys.js"></script>
+<script>
+	var colors = ["#cfde49","#c2d59d","#6acc54","#9ca242"]
+	var sections = ["land","people","household","socioeconomics"]
+	for(var s in sections){
+		console.log(sections[s])
+		var color = colors[s]
+		var sectionName = sections[s]
+		d3.select("#"+sections[s]+ " .sectionTitle").style("background-color",color)//,"linear-gradient(to left, #ffffff 0%, "+color+" 100%)")
+		
+	}
+	var keys = {
+		land:["A00001_001","A00002_002","A00003_002"],
+		people:["A02001_002","A02001_003"],
+		household:[],
+		socioeconomics:[]
+	}
+	var censusData = d3.csv("R12991686_SL140.csv")
+	Promise.all([censusData])
+	.then(function(data){
+		//console.log(data[0])
+		d3.select("#title")
+		.html("There are "+data[0].length+" census tracts. <br>Here is an overview to explain what they are.")
+		
+		var width = window.innerWidth-20
+		var height =window.innerHeight-10
+		var svg = d3.select("#chart").append("svg")
+		.attr("width",width)
+		.attr("height",height)
+		var grid = 3
+		var maxWidth = Math.floor(width/grid)
+		
+		drawGrid(data[0],svg,maxWidth,grid)
+		
+		var zeros = data[0].filter(function(d){
+			return parseFloat(d["SE_A00001_001"]) == 0;
+		})
+		console.log(zeros)
+		var noZero = filterOutZero(data[0],"A00001_001")
+		//console.log(noZero)
+		var noOutliers = filterOutOutliers(noZero,"A00001_001",12)
+		//console.log(noOutliers)
+	//	drawChart(noOutliers,"A00001_001",colors[0],300,svg)
+		
+		d3.select("#population").on("click",function(){
+			transformGrid(data[0],maxWidth,"A00001_001",grid)
+			
+		})
+		
+		
+	})
+	function filterOutZero(data,key){
+		return data.filter(function(d){
+			//console.log(parseFloat(d["SE_"+key]))
+			return parseFloat(d["SE_"+key]) > 0;
+		})
+	}
+	
+	function filterOutOutliers(data,key,limit){
+		var sorted = data.sort(function(a,b){
+			return a["SE_"+key]-b["SE_"+key]
+		})
+		return sorted.slice(0,limit*-1)
+	}
+	
+	function drawGrid(data,svg,maxWidth,grid){
+		
+		svg.selectAll("rect")
+		.data(data)
+		.enter()
+		.append("rect")
+		.attr('class',"tract")
+		.attr("id",function(d){return "tract_"+d["Geo_FIPS"]})
+		
+		.attr("x",function(d,i){
+			return (i%maxWidth)*grid+grid
+		})
+		.attr("y",function(d,i){
+			return Math.floor(i/maxWidth)*grid+grid
+		})
+		.attr("width",grid-1)
+		.attr("height",grid-1)
+		.attr("fill","black")//colors[Math.round(Math.random()*colors.length)])
+		.attr("opacity",.5)
+	}
+	
+	function transformGrid(data,maxWidth,key,grid){
+		
+		var noZero = filterOutZero(data,key)
+		var max = d3.max(data, d => parseFloat(d["SE_"+key]))
+		
+		var x = d3.scaleLinear()
+			.domain([0,max])
+			.range([0, window.innerWidth-10]);
+			
+		var histogram = d3.histogram()
+			.value(function(d) { return parseFloat(d["SE_"+key]); })
+			.domain([0,max]) 
+			.thresholds(x.ticks(100));
+
+		// And apply this function to data to get the bins
+		var bins = histogram(data);
+		//console.log(bins)
+		
+		var yOffset = 0
+		var formatted = {}
+		for(var b in bins){
+			var bin = bins[b]
+			var sorted = bin.sort(function(a,b){
+				return a["SE_"+key]-b["SE_"+key]
+			})
+			for(var s in sorted){
+				var gid = sorted[s]["Geo_FIPS"]
+				sorted[s]["bin"]=b
+				sorted[s]["order"]=s
+				sorted[s]["binOffset"]=yOffset
+				formatted[gid]=sorted[s]
+			}
+		//	console.log(sorted)
+			var mapped = sorted.map(function (obj) {
+			  return obj["Geo_FIPS"];
+			});
+			yOffset+=Math.ceil(bins[b].length/maxWidth)
+			
+		//	console.log(mapped)
+		//	formatted.push(mapped)
+		}
+		//console.log(formatted)
+		
+		
+		for(var b in bins){
+			var bin = bins[b]
+			for(var i in bin){
+				var gid = bin[i]["Geo_FIPS"]
+				d3.select("#tract_"+gid)
+				.transition().duration(1000).delay(i)
+				.attr("x",function(d,i){
+					//console.log(formatted[gid]["order"],formatted[gid]["bin"])
+					if(formatted[gid]!=undefined){
+					return (formatted[gid]["bin"]+formatted[gid]["binOffset"]+Math.floor(formatted[gid]["order"]/maxWidth))*grid
+					}
+				})
+				.attr("y",function(d,i){
+					if(formatted[gid]!=undefined){
+						return Math.floor(formatted[gid]["order"]%maxWidth)*grid
+					}
+				})
+			}
+		}
+				//
+		// d3.selectAll(".tract")
+		// .each(function(d,i){
+		// 	var gid = d["Geo_FIPS"]
+		// 	d3.select(this).transition().delay(1000+i/10)
+		// 	.attr("x",function(d,i){
+		// 		if(formatted[gid]!=undefined){
+		//
+		// 			return (formatted[gid]["bin"]+formatted[gid]["binOffset"]+(formatted[gid]["order"]%maxWidth))*grid
+		//
+		// 	//return formatted[gid]["bin"]*grid+formatted[gid]["binOffset"]*grid+grid*(formatted[gid]["order"]%maxWidth)
+		// 		}
+		// 	})
+		// 	.attr("y",function(d,i){
+		// 		if(formatted[gid]!=undefined){
+		// 			return Math.floor(formatted[gid]["order"]/maxWidth)*grid
+		// 		}
+		// 	})
+		// //	console.log(d["Geo_FIPS"])
+		// })
+		
+		
+		
+	}
+	
+	function drawChart(data,key,color,maxWidth,svg){
+		var yOffset = 0
+		var xOffset = 100
+		var keyLabel = censusKeys[key]
+		console.log(keyLabel)
+	var margin = 100
+		var grid = 3
+	var width = window.innerWidth-margin
+		// X axis: scale and draw:
+		var max = d3.max(data, d => parseFloat(d["SE_"+key]))
+		  var x = d3.scaleLinear()
+		.domain([0,max])     // can use this instead of 1000 to have the max of data: d3.max(data, function(d) { return +d.price })
+		      .range([0, width]);
+			  
+			  console.log(max)
+	  var histogram = d3.histogram()
+	        .value(function(d) { return parseFloat(d["SE_"+key]); })   // I need to give the vector of value
+	        .domain(x.domain())  // then the domain of the graphic
+	        .thresholds(x.ticks(100)); // then the numbers of bins
+
+	    // And apply this function to data to get the bins
+	    var bins = histogram(data);
+		console.log(bins)
+	
+		
+		for(var b in bins){
+			
+			var max = d3.max(bins[b], d => parseFloat(d["SE_"+key]))
+			var min = d3.min(bins[b], d => parseFloat(d["SE_"+key]))
+			
+			svg.append("text").attr("x",grid).attr("y",b*(grid+10)+grid*yOffset+grid*5)
+			.text(min+" - "+max )
+			svg.append("text").attr("x",grid*maxWidth).attr("y",b*(grid+10)+grid*yOffset+grid*5)
+			.text(bins[b].length)
+			
+			console.log(yOffset)
+			var sorted = bins[b].sort(function(a,b){
+				return a["SE_"+key]-b["SE_"+key]
+			})
+			svg.selectAll("._"+b)
+			.data(sorted)
+			.enter()
+			.append("rect")
+			.attr('class',"_"+b)
+			.attr("x",function(d,i){
+				return (i%maxWidth)*grid+grid+xOffset
+			})
+			.attr("y",function(d,i){
+				return b*(grid+10)+grid*yOffset+Math.floor(i/maxWidth)*grid+grid*5
+			})
+			.attr("width",grid-1)
+			.attr("height",grid-1)
+			.attr("fill",color)
+			
+		yOffset+=Math.ceil(bins[b].length/maxWidth)
+		
+		}
+		
+	}
+	
+</script>
+
+</body>
+</html>
