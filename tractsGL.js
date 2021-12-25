@@ -96,6 +96,8 @@ function drawMenu(){
 			.style("cursor","pointer")
 		}
 	}
+	d3.select("#EP_MINRTY_button").style("border","1px solid black")
+	
 }
 
 
@@ -103,6 +105,7 @@ var censusFile = d3.csv("SVI2018_US.csv")
 var centroidsFile = d3.json("tract_centroids.geojson")
 Promise.all([censusFile,centroidsFile])
 .then(function(data){
+	
 	console.log(data[1])
 	census = data[0]//.slice(0,1000)
 	centroids = data[1]
@@ -110,15 +113,15 @@ Promise.all([censusFile,centroidsFile])
 	var height = window.innerHeight
 	console.log(width,height)
 	
-	var pixelsTotal = width*height
-	console.log(pixelsTotal)
-	var pixelsPerPoint = pixelsTotal/data[0].length
-	console.log("pixels per point" + pixelsPerPoint)
-	gridSize = 2//Math.round(Math.sqrt(pixelsPerPoint))
+	var pixelsTotal = width*height	//
+	// console.log(pixelsTotal)
+	// var pixelsPerPoint = pixelsTotal/data[0].length
+	// console.log("pixels per point" + pixelsPerPoint)
+	// gridSize = 2//Math.round(Math.sqrt(pixelsPerPoint))
 	
-	pointsAcross = Math.floor(width/gridSize*2)
-	console.log("points across "+pointsAcross)
-	console.log(gridSize)
+	// pointsAcross = Math.floor(width/gridSize*2)
+	// console.log("points across "+pointsAcross)
+	// console.log(gridSize)
 	
 	var padding = 20
     projection = d3.geoAlbers()
@@ -163,7 +166,7 @@ function hexToRgb(hex) {
 //  console.log(result)
   return result ? [parseInt(result[1], 16), parseInt(result[2], 16),parseInt(result[3], 16)]: null;
 }
-var pointWidth = 1;
+var pointWidth = 2;
 
 function main(err, regl) {
   const numPoints = census.length;
@@ -195,7 +198,7 @@ function main(err, regl) {
 					  return parseInt(d[activeKey])
 					  }
 				  })
-  				 var cScale = d3.scaleLinear().domain([min,max]).range(["red","green"])
+  				 var cScale = d3.scaleLinear().domain([min,max]).range(["red","black"])
 				  console.log(min,max)
 			  		return [0,max]
   			  }else{
@@ -210,7 +213,7 @@ function main(err, regl) {
 		var split = (maxBinSize/(width/2))
 		
 	gridSize = 3
-	  	pointWidth=3
+	  	pointWidth=2
 		
 		console.log(bins)
   	  var noneValues = census.filter(function(d) { return d[activeKey] <0 })
@@ -219,7 +222,7 @@ function main(err, regl) {
   		  for(var n in noneValues){
   			 var gid = noneValues[n]["FIPS"]
 			  var binSize = noneValues.length
-			var split = Math.floor((width-20)/gridSize)
+			var split = Math.floor((width)/gridSize)
 				var columnInBar = Math.floor(n/maxHeight)
 			  
   			formatted[gid]={split:split,
@@ -233,11 +236,20 @@ function main(err, regl) {
   	  }
 	  
 		
+	  var labels = []
+		
 		for(var b in bins){
 			var bin = bins[b]
 			var binSize = bin.length
-			var split = Math.floor((width-20)/gridSize)
+			var split = Math.floor((width)/gridSize)
+			var binPop = 0
+			bin.sort(function(a,b){
+				return parseFloat(a[activeKey])-parseFloat(b[activeKey])
+			})
 			for(var dot in bin){
+				if(!isNaN(parseInt(bin[dot]["E_TOTPOP"]))){
+					binPop+=parseInt(bin[dot]["E_TOTPOP"])
+				}
 				var index = dot//%maxHeight
 				var columnInBar = Math.floor(dot/maxHeight)
 				var value = bin[dot][activeKey]
@@ -247,27 +259,41 @@ function main(err, regl) {
 				}
 			}				
 			xOffset+=Math.ceil(binSize/split)//Math.ceil(bin.length/maxHeight)
+			
+			labels.push({offset:xOffset,count:binSize,bin:bin,binPop:binPop})
+			// console.log(xOffset)
+// 			console.log(bin[0][activeKey])
+// 			console.log(bin[bin.length-1][activeKey])
+// 			d3.select("body").append("div")
+// 			.style("width","90%")
+// 			.style("border-bottom","1px solid white")
+// 			.style('text-align',"right")
+// 				.html(binSize+" tracts have "
+// 						+bin[0][activeKey]+"% - "+bin[bin.length-1][activeKey]+"% "
+// 						+themeDisplayTextShort[activeKey]
+// 				)
+// 			.style("position","fixed").style("right","10px").style("top",xOffset*gridSize+"px")
+// 			.attr("class","binMarkers")
 		//	console.log(bin.length,xOffset,split)
 		}	
-	
   	  for(var i in points){
 		  //console.log(points[i])
 		  var gid = points[i].data["FIPS"]
 		  
 		  if(formatted[gid]!=undefined){
 			  
-	  		  points[i]["y"]=formatted[gid].binNumber*(gridSize)+10
+	  		  points[i]["y"]=formatted[gid].binNumber*(gridSize)
 			  +formatted[gid].xOffset*(gridSize)
 			  +Math.floor(formatted[gid].index/formatted[gid].split)*(gridSize)
 			  //+formatted[i].xOffset)//*(gridSize+1)
 		  
-	  		  points[i]["x"]=height-Math.floor(formatted[gid].index%formatted[gid].split)*(gridSize)-10
+	  		  points[i]["x"]=Math.floor(formatted[gid].index%formatted[gid].split)*(gridSize)
 			  
-			  if(activeKey = "EP_PCI"){
+			  if(activeKey == "EP_PCI"){
 				  var cScale = d3.scaleLinear().domain([0,227064]).range(["red","green"])
 			  	
 			  }else{
-				  var cScale = d3.scaleLinear().domain([0,100]).range(["red","green"])
+				  var cScale = d3.scaleLinear().domain([0,100]).range(["green","red"])
 			  }
 			  
 			  
@@ -289,12 +315,14 @@ function main(err, regl) {
 // 		  }
   		
   	  }
-	  points.sort(function(a,b){
-  	  	return a.data[activeKey]-b.data[activeKey]
-  	  })
+	  // points.sort(function(a,b){
+  // 	  	return a.data[activeKey]-b.data[activeKey]
+  // 	  })
   }
   
   function mapLayout(points){
+	  	pointWidth=1
+	  
 	  var max = d3.max(census, function(d){
 		  var fips = d["FIPS"]
 		  if(centroidsByFips["_"+fips]!=undefined){
@@ -336,7 +364,7 @@ function main(err, regl) {
   			//  points[i]["color"]=[rgb.r,rgb.g,rgb.b,1]
   			  points[i]["color"]=[0,0,0]
 			 
-	var cScale = d3.scaleLinear().domain([0,100]).range(["yellow","white"])
+	var cScale = d3.scaleLinear().domain([0,100]).range(["green","red"])
 	var scaledColor = cScale(parseFloat(points[i].data[activeKey]))
 	var rgb = d3.color(scaledColor)
 	var rgbScale = d3.scaleLinear().domain([0,255]).range([0,1])
@@ -523,7 +551,7 @@ function main(err, regl) {
       // clear the buffer
       regl.clear({
         // background color (black)
-        color: [0.1,0.1,0.3,1],
+        color: [1,1,1,1],
         depth: 1,
       });
 
@@ -541,8 +569,23 @@ function main(err, regl) {
 
 for(var m in measures){
 	//console.log(measures[m])
-	d3.select("#"+measures[m]+"_button")
+	d3.select("#"+measures[m]+"_button").attr("class","measure")
+	// .style("border",".5px solid white")
+	.style("margin","5px")
+	.on("mouseover",function(d){
+		d3.select(this).style("border","1px dotted black")
+	})
+	.on("mouseout",function(d){
+		//d3.selectAll(".measure").style("border","none")
+		if(d3.select(this).attr("id").replace("_button","")==activeKey){
+			d3.select(this).style("border","1px solid black")
+		}else{
+			d3.select(this).style("border","none")
+		}
+	})
 	.on("click",function(d){
+		d3.selectAll(".measure").style("border","none")
+		d3.select(this).style("border","1px solid black")
 		var thisId = d3.select(this).attr("id").replace("_button","")
 		 activeKey = thisId
 		console.log(thisId)
@@ -615,7 +658,6 @@ for(var m in measures){
   }
  
   animate(barLayout, points);
-
   // start the initial animation
  
 }

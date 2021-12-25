@@ -4,37 +4,36 @@
 <head>
 	<style>
 		body{
-			background-color:#fefeff;
+			background-color:#ffffff;
 			font-family:helvetica;
-			color:white;}
+			color:black;}
 		#title{
 			z-index:99;
 			background-color:rgba(255,255,255,0);
 			/*width:200px;*/
 			margin:10px;
-			padding:5px;
 			margin-bottom:0px;
-			color:#ffffff;
+			color:#000;
 			font-weight:100;
 			letter-spacing:2px;
 			font-size:24px;
 			font-style:italic;
 		}
 		#sections{
+			width:150px;
 			font-weight:100;
 			font-size:12px;
-			width:200px;
 		}
 		.sectionTitle{
 			/*background-color:black;
 */					font-size:16px;
 			font-style:italic;
-			color:white;
+			color:#000;
 			padding:4px;
 		}
 		.section{
-			/*width:150px;
-*/display:inline-block;
+			width:150px;
+			display:inline-block;
 /*			background-color:rgba(25.5,25.5,76.5,.6);
 */			padding:5px;
 /*			border:1px solid black;
@@ -51,13 +50,25 @@
 			bottom:50%;
 		}
 		#subtitle{
-			font-size:12px;
+			font-size:14px;
 			letter-spacing:2px;
 			font-weight:100;
 			padding:10px;
-			position:fixed;
+		/*	position:fixed;
 			left:0px;
+			bottom:0px;*/
+		}
+		#map{
+			font-size:14px;
+			position:fixed;
+			right:0px;
 			bottom:0px;
+			width:80px;
+/*			border:.1px solid white;
+*/			
+		}
+		.measure{
+			padding:1px;
 		}
 		</style>
 </head>
@@ -67,12 +78,12 @@
 	<script src="tractsGL.js"></script>
 	
 	
-	<div id="title">Here are the metrics in the Social Vulnerability Index<br>
+	<div id="title">Social Vulnerability Index metrics by Census Tract<br>
 	</div>
 	<div id="subtitle">Each dot is a Census Tract</div>
 	<div id="sections">
 	</div>
 		<div id="map" class="section">Show Map</div>
-	<div id="axis">axis
-	</div>
+	<!-- <div id="axis">axis
+	</div> -->
 </body>
