@@ -16,7 +16,7 @@ var census
 var projection
 var centroidsByFips
 var activeKey ="EP_MINRTY"
-
+var mapOn = true
 
 var limitsOutliers = {
     "EP_POV":"below poverty",
@@ -106,12 +106,12 @@ var centroidsFile = d3.json("tract_centroids.geojson")
 Promise.all([censusFile,centroidsFile])
 .then(function(data){
 	
-	console.log(data[1])
+	//console.log(data[1])
 	census = data[0]//.slice(0,1000)
 	centroids = data[1]
 	var width = window.innerWidth
 	var height = window.innerHeight
-	console.log(width,height)
+	//console.log(width,height)
 	
 	var pixelsTotal = width*height	//
 	// console.log(pixelsTotal)
@@ -616,14 +616,29 @@ for(var m in measures){
 	    frameLoop.cancel();	
 	    animate(barLayout, points);
 	})
+	
+	
 	d3.select("#map")
+	.html("show as grid")
 	.on("click",function(d){
-		console.log(d)
+		//console.log(d)
 		// var thisId = d3.select(this).attr("id").replace("_button","")
 	// 	 activeKey = thisId
 	// 	console.log(activeKey)
-	    frameLoop.cancel();	
-	    animate(mapLayout, points);
+		if(mapOn==true){
+			mapOn=false
+		d3.select("#map")
+		.html("show as map")
+		    frameLoop.cancel();	
+		    animate(barLayout, points);
+		}else{
+		d3.select("#map")
+		.html("show as grid")
+			mapOn=true
+		    frameLoop.cancel();	
+		    animate(mapLayout, points);
+		}
+	   
 	})
 }
 

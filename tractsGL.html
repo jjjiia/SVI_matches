@@ -70,6 +70,19 @@
 		.measure{
 			padding:1px;
 		}
+		#key{
+			position:fixed;
+			right:0px;
+			top:0px;
+			padding:10px;
+			font-size:12px;
+			text-align:justify;
+		}
+		#gradient {
+			height:10px;
+			width:150px;
+		  background-image: linear-gradient(to right, green , red);
+		}
 		</style>
 </head>
 <body>
@@ -77,7 +90,14 @@
 	<script src="https://d3js.org/d3.v5.min.js"></script>
 	<script src="tractsGL.js"></script>
 	
-	
+	<div id = "key">
+		Vulnerability for Metric:<br>
+		Low &nbsp &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+		&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp 
+		&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp 
+		High
+	<div id= "gradient"></div>
+	</div>
 	<div id="title">Social Vulnerability Index metrics by Census Tract<br>
 	</div>
 	<div id="subtitle">Each dot is a Census Tract</div>
