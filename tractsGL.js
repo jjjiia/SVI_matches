@@ -123,9 +123,9 @@ Promise.all([censusFile,centroidsFile])
 	// console.log("points across "+pointsAcross)
 	// console.log(gridSize)
 	
-	var padding = 20
+	var padding = 40
     projection = d3.geoAlbers()
-	.fitExtent([[padding,padding],[width-padding,height-padding]],centroids)
+	.fitExtent([[padding*4,padding],[width-padding,height-padding]],centroids)
 //	makeGrid(data[0])
 	
 	centroidsByFips =  makeFipsDictionary(centroids["features"])
@@ -179,6 +179,7 @@ function main(err, regl) {
     const maxDuration = duration + delayByIndex * census.length; // include max delay in here
   
   function barLayout(points){
+	  d3.selectAll(".binMarkers").remove()
 	  var maxHeight = width/(2)//Math.floor(height/(gridSize+2))
 	   var max = d3.max(census, d => parseFloat(d[activeKey]))
 	  var formatted = {}
@@ -198,7 +199,7 @@ function main(err, regl) {
 					  return parseInt(d[activeKey])
 					  }
 				  })
-  				 var cScale = d3.scaleLinear().domain([min,max]).range(["red","black"])
+  				 // var cScale = d3.scaleLinear().domain([min,max]).range(["red","black"])
 				  console.log(min,max)
 			  		return [0,max]
   			  }else{
@@ -261,20 +262,42 @@ function main(err, regl) {
 			xOffset+=Math.ceil(binSize/split)//Math.ceil(bin.length/maxHeight)
 			
 			labels.push({offset:xOffset,count:binSize,bin:bin,binPop:binPop})
+			if(bin.length<split){
+			var remainder = split - bin.length%split
+				
+			}else{
+			var remainder = 0
+			}
 			// console.log(xOffset)
 // 			console.log(bin[0][activeKey])
 // 			console.log(bin[bin.length-1][activeKey])
-// 			d3.select("body").append("div")
-// 			.style("width","90%")
-// 			.style("border-bottom","1px solid white")
-// 			.style('text-align',"right")
-// 				.html(binSize+" tracts have "
-// 						+bin[0][activeKey]+"% - "+bin[bin.length-1][activeKey]+"% "
-// 						+themeDisplayTextShort[activeKey]
-// 				)
-// 			.style("position","fixed").style("right","10px").style("top",xOffset*gridSize+"px")
-// 			.attr("class","binMarkers")
-		//	console.log(bin.length,xOffset,split)
+			if(bin.length>0){
+				d3.select("body").append("div")
+				//.style("width","50%")
+				.style("font-size","11px").style("font-style","italic")
+				//.style("border-bottom","1px solid black")
+				.style('text-align',"right")
+					.html(
+						function(){
+							if(activeKey=="EP_PCI"){
+		
+								return "$"+Math.round(bin[0][activeKey])+" - $"+Math.round(bin[bin.length-1][activeKey])
+								+themeDisplayTextShort[activeKey]
+								+": <strong>"+binSize+" tracts</strong>"
+							}else{
+								return Math.round(bin[0][activeKey])+"% - "+bin[bin.length-1][activeKey]+"% "
+								+themeDisplayTextShort[activeKey]
+								+": <strong>"+binSize+" tracts</strong>"
+							}
+						}
+					)
+				.style("position","fixed")
+					.style("right","20px")
+					.style("top",xOffset*gridSize-20+b*gridSize*2+"px")
+				.attr("class","binMarkers")
+			}
+ 			
+				//	console.log(bin.length,xOffset,split)
 		}	
   	  for(var i in points){
 		  //console.log(points[i])
@@ -282,7 +305,7 @@ function main(err, regl) {
 		  
 		  if(formatted[gid]!=undefined){
 			  
-	  		  points[i]["y"]=formatted[gid].binNumber*(gridSize)
+	  		  points[i]["y"]=formatted[gid].binNumber*(gridSize)*2
 			  +formatted[gid].xOffset*(gridSize)
 			  +Math.floor(formatted[gid].index/formatted[gid].split)*(gridSize)
 			  //+formatted[i].xOffset)//*(gridSize+1)
@@ -322,6 +345,7 @@ function main(err, regl) {
   
   function mapLayout(points){
 	  	pointWidth=1
+	  d3.selectAll(".binMarkers").remove()
 	  
 	  var max = d3.max(census, function(d){
 		  var fips = d["FIPS"]
@@ -657,7 +681,7 @@ for(var m in measures){
 	  		  
   }
  
-  animate(barLayout, points);
+  animate(mapLayout, points);
   // start the initial animation
  
 }
