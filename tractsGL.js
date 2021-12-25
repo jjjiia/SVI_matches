@@ -185,17 +185,26 @@ function main(err, regl) {
 			.value(function(d) { return parseFloat(d[activeKey]); })   // I need to give the vector of value
 			.domain(function(){
   			  if(activeKey=="EP_PCI"){
-  				  var max = d3.max(census, function(d){return d[activeKey]})
-  				  var min = d3.min(census, function(d){return d[activeKey]})
-  				  var cScale = d3.scaleLinear().domain([min,max]).range(["red","green"])
-			  	return [min,max]
+				  var max = d3.max(census, function(d){
+					  if(d[activeKey]!=-999){
+					  return parseInt(d[activeKey])
+					  }
+				  })
+				  var min = d3.min(census, function(d){
+					  if(d[activeKey]!=-999){
+					  return parseInt(d[activeKey])
+					  }
+				  })
+  				 var cScale = d3.scaleLinear().domain([min,max]).range(["red","green"])
+				  console.log(min,max)
+			  		return [0,max]
   			  }else{
   			  	return [0,100]
   			  }
 			})  // then the domain of the graphic
 			.thresholds(10); // then the numbers of bins
 			
-		var bins = histogram(census);  
+		var bins = histogram(census.filter(function(d) { return d[activeKey] >=0 }));  
 		//bins = bins.slice(0,limitsOutliers[activeKey].top)		
 		var maxBinSize = d3.max(bins, d => d.length)
 		var split = (maxBinSize/(width/2))
@@ -203,7 +212,7 @@ function main(err, regl) {
 	gridSize = 3
 	  	pointWidth=3
 		
-		
+		console.log(bins)
   	  var noneValues = census.filter(function(d) { return d[activeKey] <0 })
   	  if(noneValues.length>0){
   	  	//draw not enough values block
@@ -249,33 +258,35 @@ function main(err, regl) {
 			  
 	  		  points[i]["y"]=formatted[gid].binNumber*(gridSize)+10
 			  +formatted[gid].xOffset*(gridSize)
-			  +Math.floor(formatted[gid].index/formatted[gid].split)*(gridSize)//+formatted[i].xOffset)//*(gridSize+1)
+			  +Math.floor(formatted[gid].index/formatted[gid].split)*(gridSize)
+			  //+formatted[i].xOffset)//*(gridSize+1)
 		  
 	  		  points[i]["x"]=height-Math.floor(formatted[gid].index%formatted[gid].split)*(gridSize)-10
-			  if(activeKey=="EP_PCI"){
-				  var max = d3.max(census, function(d){return d[activeKey]})
-				  var min = d3.min(census, function(d){return d[activeKey]})
-				  var cScale = d3.scaleLinear().domain([min,max]).range(["red","green"])
+			  
+			  if(activeKey = "EP_PCI"){
+				  var cScale = d3.scaleLinear().domain([0,227064]).range(["red","green"])
 			  	
 			  }else{
 				  var cScale = d3.scaleLinear().domain([0,100]).range(["red","green"])
 			  }
-	var scaledColor = cScale(parseFloat(points[i].data[activeKey]))
-	var rgb = d3.color(scaledColor)
-	var rgbScale = d3.scaleLinear().domain([0,255]).range([0,1])
+			  
+			  
+			var scaledColor = cScale(parseFloat(points[i].data[activeKey]))
+			var rgb = d3.color(scaledColor)
+			var rgbScale = d3.scaleLinear().domain([0,255]).range([0,1])
 
 	
-	if(points[i].data[activeKey]<0){
-		//console.log("less than zero")
-			  points[i]["color"]=[0,0,0]
-	}else{
-			  points[i]["color"]=[rgbScale(rgb.r),rgbScale(rgb.g),rgbScale(rgb.b)]
-	}
+			if(points[i].data[activeKey]<0){
+				//console.log("less than zero")
+					  points[i]["color"]=[0,0,0]
+			}else{
+					  points[i]["color"]=[rgbScale(rgb.r),rgbScale(rgb.g),rgbScale(rgb.b)]
+			}
 			  
-		  }else{
-			  console.log(points[i].data["FIPS"],points[i])
-		  	console.log("no")
-		  }
+		  }// else{
+// 			  console.log(points[i].data["FIPS"],points[i])
+// 		  	console.log("no")
+// 		  }
   		
   	  }
 	  points.sort(function(a,b){
@@ -529,7 +540,7 @@ function main(err, regl) {
    
 
 for(var m in measures){
-	console.log(measures[m])
+	//console.log(measures[m])
 	d3.select("#"+measures[m]+"_button")
 	.on("click",function(d){
 		var thisId = d3.select(this).attr("id").replace("_button","")
