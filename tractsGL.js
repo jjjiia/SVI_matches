@@ -1,6 +1,14 @@
 //views
 //map of centroids
 //each bin
+
+
+//todo
+//fix each category data button
+//turn to real grid with labels of amount
+//add population? add land?
+//color north to south or east to west
+
 var gridSize
 var pointsAcross
 var centroids
@@ -34,7 +42,7 @@ var limitsOutliers = {
 }
 
 
-var measures = ["EP_EP_POV","EP_PCI","EP_UNEMP","EP_NOHSDP","EP_AGE17","EP_AGE65","EP_DISABL","EP_SNGPNT", "EP_LIMENG","EP_MINRTY","EP_CROWD","EP_GROUPQ","EP_MOBILE", "EP_MUNIT","EP_NOVEH"]
+var measures = ["EP_POV","EP_PCI","EP_UNEMP","EP_NOHSDP","EP_AGE17","EP_AGE65","EP_DISABL","EP_SNGPNT", "EP_LIMENG","EP_MINRTY","EP_CROWD","EP_GROUPQ","EP_MOBILE", "EP_MUNIT","EP_NOVEH"]
 
 var themeGroupDisplayText = {
     THEME1:"Socioeconomic Status",
@@ -155,7 +163,7 @@ function hexToRgb(hex) {
 //  console.log(result)
   return result ? [parseInt(result[1], 16), parseInt(result[2], 16),parseInt(result[3], 16)]: null;
 }
-var pointWidth = 2;
+var pointWidth = 1;
 
 function main(err, regl) {
   const numPoints = census.length;
@@ -163,109 +171,75 @@ function main(err, regl) {
   const height = window.innerHeight;
 
   // duration of the animation ignoring delays
-  const duration = 1000; // 1500ms = 1.5s
-	const delayByIndex=5000/census.length;
+  const duration = 800; // 1500ms = 1.5s
+	const delayByIndex=1000/census.length;
     const maxDuration = duration + delayByIndex * census.length; // include max delay in here
-	
-	
-
-  // helper to layout points in a green fuzzy circle
-  // function gridLayout(points) {
- // 	  var max = d3.max(census, d => parseFloat(d[activeKey]))
- // 	  var colorScale = d3.scaleLinear()
- // 					.domain([0,max])
- // 					.range(["black","blue"])
- // 	  	pointWidth=1
- // 	  for(var i in points){
- // 	 // 	console.log(i)
- // 		  points[i]["x"]=i%(width/(gridSize+1))*(gridSize+1)
- // 		  points[i]["y"]=Math.random()*height
- // 		  //Math.floor(i/(width/(gridSize+1)))*(gridSize+1)
- // 			  var colorValue = census[i][activeKey]
- // 		  if(colorValue==""){colorValue=0}
- // 		  var scaledColor = colorScale(parseFloat(colorValue))
- // 		  var rgb = d3.color(scaledColor)
- //
- // 		  points[i]["color"]=[rgb.r,rgb.g,rgb.b]
- // 		 // points[i]["color"]=rgb
- // 	  }
- // 	  console.log(points)
- //  //  const rng = d3.randomNormal(0, 0.5);
- // //  console.log(points)
- // //    points.forEach((d, i) => {
- // //
- // //    d.x=i%500*gridSize,
- // //    d.y=Math.floor(i/500)*gridSize,
- // //    // colorEnd:[Math.random(), Math.random(), Math.random(),.5]
- // // //
- // // // 	  d.x=Math.random()*width,
- // // // 	  d.y=Math.random()*height,
- // //        //d.x = (rng() + Math.cos(i)) * (width / 2.5) + width / 2;
- // //      //d.y = (rng() + Math.sin(i)) * (height / 2.5) + height / 2;
- // //      d.color = [Math.random(), Math.random(),0,.5]; // random amount of green
- // //   //   d.color = colorScale(census[i]["SE_A00001_001"]); // random amount of green
- // //    });
- // // 	console.log(census[1]["SE_A00001_001"])
- // // 	console.log(d3.color(colorScale(census[1]["SE_A00001_001"])).formatHex())
- // // 	console.log(points)
- //  }
   
   function barLayout(points){
-	  var maxHeight = height/(2)//Math.floor(height/(gridSize+2))
-	  //get whats bigger than 1 column, whats smaller
-	  //get whats smaller than 5
-	  //
-	  //get count for largest bin and mark
-	  //get outlier and mark
-	  //get median - and mark x
+	  var maxHeight = width/(2)//Math.floor(height/(gridSize+2))
 	   var max = d3.max(census, d => parseFloat(d[activeKey]))
-  // 	  var colorScale = d3.scaleLinear()
-  // 					.domain([0,100])
-  // 					.range(["black","blue"])
-	  //console.log(max,activeKey)
 	  var formatted = {}
-	  var xOffset = 0
-	 // 	pointWidth=1
+	  var xOffset = 0	  
+
 	  	var histogram = d3.histogram()
 			.value(function(d) { return parseFloat(d[activeKey]); })   // I need to give the vector of value
-			.domain([0,100])  // then the domain of the graphic
-			.thresholds(100); // then the numbers of bins
+			.domain(function(){
+  			  if(activeKey=="EP_PCI"){
+  				  var max = d3.max(census, function(d){return d[activeKey]})
+  				  var min = d3.min(census, function(d){return d[activeKey]})
+  				  var cScale = d3.scaleLinear().domain([min,max]).range(["red","green"])
+			  	return [min,max]
+  			  }else{
+  			  	return [0,100]
+  			  }
+			})  // then the domain of the graphic
+			.thresholds(10); // then the numbers of bins
 			
 		var bins = histogram(census);  
 		//bins = bins.slice(0,limitsOutliers[activeKey].top)		
 		var maxBinSize = d3.max(bins, d => d.length)
+		var split = (maxBinSize/(width/2))
 		
-		// console.log(maxBinSize)
-// 		console.log(bins)
- 		var split = 5//Math.floor(height/2)
-// 		//console.log(split)
-// 		  var xMaxGridSize=width/100/(split+1)		//
-		// var yMaxGridSize = height/(maxBinSize/split)
-	
-	//console.log(xMaxGridSize,yMaxGridSize)
-	 // var maxGridSize = d3.min([xMaxGridSize,yMaxGridSize], d => d)
-	//	console.log(maxGridSize)
+	gridSize = 3
+	  	pointWidth=3
 		
-	gridSize = 2
-	  //	pointWidth=gridSize
+		
+  	  var noneValues = census.filter(function(d) { return d[activeKey] <0 })
+  	  if(noneValues.length>0){
+  	  	//draw not enough values block
+  		  for(var n in noneValues){
+  			 var gid = noneValues[n]["FIPS"]
+			  var binSize = noneValues.length
+			var split = Math.floor((width-20)/gridSize)
+				var columnInBar = Math.floor(n/maxHeight)
+			  
+  			formatted[gid]={split:split,
+				columnInBar:columnInBar,
+				xOffset:xOffset, 
+				gid:gid,binNumber:-1, 
+				index:parseInt(n),value:parseFloat(noneValues[n][activeKey])}
+		  	
+  		  }
+  			  xOffset+=Math.ceil(binSize/split)
+  	  }
+	  
 		
 		for(var b in bins){
 			var bin = bins[b]
+			var binSize = bin.length
+			var split = Math.floor((width-20)/gridSize)
 			for(var dot in bin){
 				var index = dot//%maxHeight
 				var columnInBar = Math.floor(dot/maxHeight)
 				var value = bin[dot][activeKey]
+				//xOffset=Math.floor(index/(height/gridSize))
 				if(bin[dot]["FIPS"]!=undefined){
-					formatted[bin[dot]["FIPS"]]={columnInBar:columnInBar,xOffset:xOffset, gid:bin[dot]["FIPS"],binNumber:parseInt(b), index:parseInt(index),value:parseFloat(value)}
+					formatted[bin[dot]["FIPS"]]={split:split,columnInBar:columnInBar,xOffset:xOffset, gid:bin[dot]["FIPS"],binNumber:parseInt(b), index:parseInt(index),value:parseFloat(value)}
 				}
 			}				
-			xOffset+=6//Math.ceil(bin.length/maxHeight)
-		}
-	
-		//console.log(formatted)
-			//console.log("points",points)
-	
-	
+			xOffset+=Math.ceil(binSize/split)//Math.ceil(bin.length/maxHeight)
+		//	console.log(bin.length,xOffset,split)
+		}	
 	
   	  for(var i in points){
 		  //console.log(points[i])
@@ -273,26 +247,34 @@ function main(err, regl) {
 		  
 		  if(formatted[gid]!=undefined){
 			  
-	  		  points[i]["x"]=formatted[gid].binNumber*(gridSize)
+	  		  points[i]["y"]=formatted[gid].binNumber*(gridSize)+10
 			  +formatted[gid].xOffset*(gridSize)
-			  +formatted[gid].index%split*(gridSize)//+formatted[i].xOffset)//*(gridSize+1)
+			  +Math.floor(formatted[gid].index/formatted[gid].split)*(gridSize)//+formatted[i].xOffset)//*(gridSize+1)
 		  
-	  		  points[i]["y"]=height-Math.floor(formatted[gid].index/split)*(gridSize)//-100
-	  		  //Math.floor(i/(width/(gridSize+1)))*(gridSize+1)
-	 
-			  
-	  		//  var scaledColor = colorScale(parseInt(formatted[gid].binNumber))
-	  		// //  var rgb = d3.color(scaledColor)
-	// 		  if(i%1000==0){
-	// 		 	 console.log(rgb,formatted[gid].binNumber)
-	//
-	// 		  }
-	var cScale = d3.scaleLinear().domain([0,100]).range([0,1])
+	  		  points[i]["x"]=height-Math.floor(formatted[gid].index%formatted[gid].split)*(gridSize)-10
+			  if(activeKey=="EP_PCI"){
+				  var max = d3.max(census, function(d){return d[activeKey]})
+				  var min = d3.min(census, function(d){return d[activeKey]})
+				  var cScale = d3.scaleLinear().domain([min,max]).range(["red","green"])
+			  	
+			  }else{
+				  var cScale = d3.scaleLinear().domain([0,100]).range(["red","green"])
+			  }
+	var scaledColor = cScale(parseFloat(points[i].data[activeKey]))
+	var rgb = d3.color(scaledColor)
+	var rgbScale = d3.scaleLinear().domain([0,255]).range([0,1])
+
 	
-			  points[i]["color"]=[0,0,cScale(formatted[gid].binNumber)]
+	if(points[i].data[activeKey]<0){
+		//console.log("less than zero")
+			  points[i]["color"]=[0,0,0]
+	}else{
+			  points[i]["color"]=[rgbScale(rgb.r),rgbScale(rgb.g),rgbScale(rgb.b)]
+	}
 			  
-			  
-	  		 // points[i]["color"]=[rgb.r,rgb.g,rgb.b]
+		  }else{
+			  console.log(points[i].data["FIPS"],points[i])
+		  	console.log("no")
 		  }
   		
   	  }
@@ -305,7 +287,7 @@ function main(err, regl) {
 	  var max = d3.max(census, function(d){
 		  var fips = d["FIPS"]
 		  if(centroidsByFips["_"+fips]!=undefined){
-		 return parseFloat(centroidsByFips["_"+fips][0])
+		 	 return parseFloat(centroidsByFips["_"+fips][0])
 		  	
 		  }
 	  	
@@ -320,18 +302,7 @@ function main(err, regl) {
 	  }
 	  )
 	  
-	  
-	//  var min = d3.min(census, d => parseFloat(centroidsByFips["_"+d["FIPS"]][1]))
-   	  var colorScale = d3.scaleLinear()
-   					.domain([0,width])
-   					.range(["black","white"])
-	  
-	 // 	 pointWidth=2
-	  // census.sort(function(a,b){
- // 		  return a["FIPS"]-b["FIPS"]
- // 	  })
-	//  census.sort(function(a,b){return b[activeKey]-a[activeKey]})
-	  for(var i in points){
+	  	  for(var i in points){
 		  var fips = "_"+census[i]["FIPS"]
 		  if(centroidsByFips[fips]!=undefined){
 
@@ -346,13 +317,20 @@ function main(err, regl) {
 			 //  var colorValue = parseFloat(census[i][activeKey])
 			  //console.log(colorValue)
   			 // if(colorValue==-999){colorValue=0}
-  			  var scaledColor = colorScale(px)
+  			  // var scaledColor = colorScale(px)
 		//	 console.log(scaledColor)
   			  var rgb = d3.color(scaledColor)
 			// console.log(rgb)
  
   			//  points[i]["color"]=[rgb.r,rgb.g,rgb.b,1]
   			  points[i]["color"]=[0,0,0]
+			 
+	var cScale = d3.scaleLinear().domain([0,100]).range(["yellow","white"])
+	var scaledColor = cScale(parseFloat(points[i].data[activeKey]))
+	var rgb = d3.color(scaledColor)
+	var rgbScale = d3.scaleLinear().domain([0,255]).range([0,1])
+	
+	points[i]["color"]=[rgbScale(rgb.r),rgbScale(rgb.g),rgbScale(rgb.b)]
 			
 		  }else{
 			  points[i]["x"]=100
@@ -361,33 +339,8 @@ function main(err, regl) {
 		  }
 		  		  
 	  }
-	  
-     // points.forEach((d, i) => {
-  //
-  //      d.x=Math.random()*width,
-  //      d.y=Math.random()*height,
-  //      // colorEnd:[Math.random(), Math.random(), Math.random(),.5]
-  //   //
-  //   // 	  d.x=Math.random()*width,
-  //   // 	  d.y=Math.random()*height,
-  //          //d.x = (rng() + Math.cos(i)) * (width / 2.5) + width / 2;
-  //        //d.y = (rng() + Math.sin(i)) * (height / 2.5) + height / 2;
-  // 		 d.color = hexToRgb(d3.color(colorScale(census[i]["SE_A02001_003"])).formatHex())
-  //        //d.color = [Math.random(), Math.random(),0,.5]; // random amount of green
-  //      });
-	  console.log(points)
+	  	  console.log(points)
   }
-
-  // // helper to layout points in a normally distributed area, colored blue
- //  function blueNormalLayout(points) {
- //    const rng = d3.randomNormal(0, 0.7);
- //    points.forEach(d => {
- //      d.x = rng() * width + width / 2;
- //      d.y = rng() * height + height / 2;
- //      d.color = [Math.random(), Math.random(), Math.random()]; // random amount of green
- //    });
- // 	console.log(points)
- //  }
 
   // set the order of the layouts and some initial animation state
   const layouts = [mapLayout,barLayout]//, blueNormalLayout];
@@ -559,7 +512,7 @@ function main(err, regl) {
       // clear the buffer
       regl.clear({
         // background color (black)
-        color: [255,255,255],
+        color: [0.1,0.1,0.3,1],
         depth: 1,
       });
 
@@ -576,14 +529,23 @@ function main(err, regl) {
    
 
 for(var m in measures){
-	//console.log(measures[m])
+	console.log(measures[m])
 	d3.select("#"+measures[m]+"_button")
 	.on("click",function(d){
 		var thisId = d3.select(this).attr("id").replace("_button","")
 		 activeKey = thisId
-		console.log(activeKey)
+		console.log(thisId)
 	    frameLoop.cancel();	
 	    animate(barLayout, points);
+	})
+	d3.select("#map")
+	.on("click",function(d){
+		console.log(d)
+		// var thisId = d3.select(this).attr("id").replace("_button","")
+	// 	 activeKey = thisId
+	// 	console.log(activeKey)
+	    frameLoop.cancel();	
+	    animate(mapLayout, points);
 	})
 }
 
@@ -624,7 +586,7 @@ for(var m in measures){
 		  // if(colorValue==-999){colorValue=0}
  // 		  var scaledColor = colorScale(colorValue)
  // 		  var rgb = d3.color(scaledColor)
-  		  var color = [0,0,0]
+  		  var color = [1,1,1]
 		//  points[i]["color"]=[rgb.r,rgb.g,rgb.b,.5]
 	//	  points[i]["color"]=[0,0,0]
 		
@@ -635,24 +597,12 @@ for(var m in measures){
 		  // points[i]["x"]=100
 		  // points[i]["y"]=100
 		  // points[i]["color"]=[0,0,0]
-		  points.push({tx:100,ty:100,colorEnd:[0,0,0],index:i,data:census[i]})
+		  points.push({tx:100,ty:100,colorEnd:[1,1,1],index:i,data:census[i]})
 		  
 	  }
 	  		  
   }
-  // points.sort(function(a,b){
-  // 	return a.data[activeKey]-b.data[activeKey]
-  // })
-				
-			  //var px = projection([centroidsByFips[fips][0],centroidsByFips[fips][1]])[0]
-
-  // create initial set of points
-  // initialize with all the points in the middle of the screen and black
-  // const points = d3.range(numPoints).map(i => ({
-  // 	  tx:width/2,//Math.random()*width,//i%pointsAcross*gridSize+ Math.random(),
-  // 	  ty:height/2,
-  //     colorEnd:[0,0,0]
-  // }));
+ 
   animate(barLayout, points);
 
   // start the initial animation

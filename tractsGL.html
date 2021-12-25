@@ -1,31 +1,42 @@
 
 <!DOCTYPE html>
-<title>Draw 100,000 points with regl</title>
+<title>SVI regl test 1</title>
 <head>
 	<style>
-		#button{
+		body{
+			background-color:#fefeff;
+			font-family:helvetica;
+			color:white;}
+		#title{
 			z-index:99;
-			background-color:rgba(255,255,255,.6);
-			width:200px;
+			background-color:rgba(255,255,255,0);
+			/*width:200px;*/
 			margin:10px;
 			padding:5px;
 			margin-bottom:0px;
+			color:#ffffff;
+			font-weight:100;
+			letter-spacing:2px;
+			font-size:24px;
+			font-style:italic;
 		}
 		#sections{
+			font-weight:100;
 			font-size:12px;
-			font-family:helvetica;
+			width:200px;
 		}
 		.sectionTitle{
-			background-color:black;
+			/*background-color:black;
+*/					font-size:16px;
+			font-style:italic;
 			color:white;
 			padding:4px;
 		}
 		.section{
-			width:20%;
-			display:inline-block;
-			background-color:rgba(255,255,255,.6);
-			margin:10px;
-			padding:5px;
+			/*width:150px;
+*/display:inline-block;
+/*			background-color:rgba(25.5,25.5,76.5,.6);
+*/			padding:5px;
 /*			border:1px solid black;
 */			vertical-align:top;
 			margin-top:0px;
@@ -37,6 +48,15 @@
 			width:100%;
 			border:1px solid black;
 			position:fixed;
+			bottom:50%;
+		}
+		#subtitle{
+			font-size:12px;
+			letter-spacing:2px;
+			font-weight:100;
+			padding:10px;
+			position:fixed;
+			left:0px;
 			bottom:0px;
 		}
 		</style>
@@ -47,9 +67,12 @@
 	<script src="tractsGL.js"></script>
 	
 	
-	<div id="button">Each dot is a Census Tract</div>
+	<div id="title">Here are the metrics in the Social Vulnerability Index<br>
+	</div>
+	<div id="subtitle">Each dot is a Census Tract</div>
 	<div id="sections">
 	</div>
+		<div id="map" class="section">Show Map</div>
 	<div id="axis">axis
 	</div>
 </body>
