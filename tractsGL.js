@@ -200,7 +200,7 @@ function main(err, regl) {
 					  }
 				  })
   				 // var cScale = d3.scaleLinear().domain([min,max]).range(["red","black"])
-				  console.log(min,max)
+				 // console.log(min,max)
 			  		return [0,max]
   			  }else{
   			  	return [0,100]
@@ -214,9 +214,9 @@ function main(err, regl) {
 		var split = (maxBinSize/(width/2))
 		
 	gridSize = 3
-	  	pointWidth=2
+	  	pointWidth=1
 		
-		console.log(bins)
+		//console.log(bins)
   	  var noneValues = census.filter(function(d) { return d[activeKey] <0 })
   	  if(noneValues.length>0){
   	  	//draw not enough values block
@@ -279,16 +279,27 @@ function main(err, regl) {
 				.style('text-align',"right")
 					.html(
 						function(){
+							
+							var displayString = ""
+							
 							if(activeKey=="EP_PCI"){
 		
-								return "$"+Math.round(bin[0][activeKey])+" - $"+Math.round(bin[bin.length-1][activeKey])
+								displayString+="$"+Math.round(bin[0][activeKey])+" - $"+Math.round(bin[bin.length-1][activeKey])
 								+themeDisplayTextShort[activeKey]
 								+": <strong>"+binSize+" tracts</strong>"
 							}else{
-								return Math.round(bin[0][activeKey])+"% - "+bin[bin.length-1][activeKey]+"% "
+								displayString+= Math.round(bin[0][activeKey])+"% - "+bin[bin.length-1][activeKey]+"% "
 								+themeDisplayTextShort[activeKey]
-								+": <strong>"+binSize+" tracts</strong>"
+								
 							}
+							
+							if(bin.length==1){
+								displayString+=": <strong>"+binSize+" tract</strong>"
+							}else{
+								displayString+=": <strong>"+binSize+" tracts</strong>"
+								
+							}
+							return displayString
 						}
 					)
 				.style("position","fixed")
@@ -402,7 +413,7 @@ function main(err, regl) {
 		  }
 		  		  
 	  }
-	  	  console.log(points)
+	  	 // console.log(points)
   }
 
   // set the order of the layouts and some initial animation state
@@ -542,7 +553,7 @@ function main(err, regl) {
 
   // function to start the animation loop (note: time is in seconds)
   function animate(layout, points) {
-    console.log('animating with new layout');
+  //  console.log('animating with new layout');
     // make previous end the new beginning
     points.forEach(d => {
       d.sx = d.tx;
@@ -595,7 +606,7 @@ for(var m in measures){
 	//console.log(measures[m])
 	d3.select("#"+measures[m]+"_button").attr("class","measure")
 	// .style("border",".5px solid white")
-	.style("margin","5px")
+	.style("margin","1px")
 	.on("mouseover",function(d){
 		d3.select(this).style("border","1px dotted black")
 	})
@@ -604,34 +615,40 @@ for(var m in measures){
 		if(d3.select(this).attr("id").replace("_button","")==activeKey){
 			d3.select(this).style("border","1px solid black")
 		}else{
-			d3.select(this).style("border","none")
+			d3.select(this).style("border","1px solid rgba(1,1,1,0)")
 		}
 	})
 	.on("click",function(d){
-		d3.selectAll(".measure").style("border","none")
+		d3.selectAll(".measure").style("border","1px solid rgba(1,1,1,0)")
 		d3.select(this).style("border","1px solid black")
 		var thisId = d3.select(this).attr("id").replace("_button","")
 		 activeKey = thisId
-		console.log(thisId)
+		//console.log(thisId)
 	    frameLoop.cancel();	
-	    animate(barLayout, points);
+		// if(mapOn==true){
+	// 	    animate(mapLayout, points);
+	// 	}else{
+		    animate(barLayout, points);
+			//}
 	})
 	
 	
 	d3.select("#map")
-	.html("show as grid")
 	.on("click",function(d){
 		//console.log(d)
 		// var thisId = d3.select(this).attr("id").replace("_button","")
 	// 	 activeKey = thisId
 	// 	console.log(activeKey)
 		if(mapOn==true){
-			mapOn=false
 		d3.select("#map")
 		.html("show as map")
+			mapOn=false
+		
+			
 		    frameLoop.cancel();	
 		    animate(barLayout, points);
 		}else{
+		
 		d3.select("#map")
 		.html("show as grid")
 			mapOn=true
