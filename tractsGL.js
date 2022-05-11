@@ -213,8 +213,8 @@ function main(err, regl) {
 		var maxBinSize = d3.max(bins, d => d.length)
 		var split = (maxBinSize/(width/2))
 		
-	gridSize = 3
-	  	pointWidth=1
+	gridSize = 4
+	  	pointWidth=3
 		
 		//console.log(bins)
   	  var noneValues = census.filter(function(d) { return d[activeKey] <0 })
@@ -355,7 +355,7 @@ function main(err, regl) {
   }
   
   function mapLayout(points){
-	  	pointWidth=1
+	  	pointWidth=3
 	  d3.selectAll(".binMarkers").remove()
 	  
 	  var max = d3.max(census, function(d){
